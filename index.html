@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shiva Kumar · Software Engineer</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+  <!--
+    #canvas — transparent overlay, full page height.
+    Floaty elements live here, absolutely positioned.
+    pointer-events: none on canvas, auto on .floaty children.
+  -->
+  <div id="canvas"></div>
+
+  <!--
+    #page — the actual readable content beneath the canvas.
+    Normal document flow, scrollable.
+  -->
+  <div id="page">
+
+    <section id="hero" class="section">
+      <p class="section-label">Shiva Kumar</p>
+      <h1 class="section-title">Software Engineer<br>&amp; AI/ML Explorer.</h1>
+      <p class="section-body">
+        Second-year CSE student at Presidency University, Bangalore.
+        I build backends, explore AI systems, and ship things that work.
+      </p>
+    </section>
+
+    <section id="about" class="section">
+      <p class="section-label">01 — About</p>
+      <h2 class="section-title">Building things<br>that think.</h2>
+      <p class="section-body">
+        My stack lives at the intersection of Java backends, Python pipelines,
+        and whatever AI tooling gets the job done. I learn best by shipping —
+        from Spring Boot REST APIs serving real Bangalore locality data,
+        to LangFlow pipelines reading student feedback with GPT-4.
+      </p>
+    </section>
+
+    <section id="projects" class="section">
+      <p class="section-label">02 — Projects</p>
+      <h2 class="section-title">Things I've<br>shipped.</h2>
+      <p class="section-body">
+        Each project in this portfolio is a system I built end-to-end —
+        schema design, backend logic, and wiring the frontend together.
+        No generated boilerplate. I understand what every line does.
+      </p>
+    </section>
+
+    <section id="contact" class="section">
+      <p class="section-label">03 — Contact</p>
+      <h2 class="section-title">Let's build<br>something.</h2>
+      <p class="section-body">
+        Open to internships, collaborations, and interesting problems.
+        Find me on
+        <a href="https://github.com" style="color:var(--color-accent)">GitHub</a>
+        or
+        <a href="https://linkedin.com" style="color:var(--color-accent)">LinkedIn</a>.
+      </p>
+    </section>
+
+  </div>
+
+  <script src="js/physics.js"></script>
+  <script src="js/elements.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
