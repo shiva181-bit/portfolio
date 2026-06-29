@@ -1,23 +1,28 @@
 /**
- * physics.js — Drag + inertia engine
+ * physics.js — Per-sandbox physics engine
  *
- * Each entity can have an optional `bounds` object (page-absolute pixels):
- *   { top, left, bottom, right }
+ * Key architectural change from the previous version:
+ *   Elements are positioned relative to their .physics-sandbox parent,
+ *   NOT the full page. This means coordinates are always 0,0 at the
+ *   sandbox's top-left corner — no scroll offset math needed at all.
  *
- * If bounds exist, edge-bounce uses them instead of the global document size.
- * physics.js never touches the DOM to find sections — that's elements.js's job.
+ * Each sandbox gets its own PhysicsEngine instance.
+ * Call: const engine = new PhysicsEngine(sandboxEl)
  */
 
 class PhysicsEngine {
-  constructor() {
+  constructor(sandboxEl) {
+    this.sandbox   = sandboxEl;
     this.entities  = [];
     this.DAMPING   = 0.96;
-    this.MAX_THROW = 16;
+    this.MAX_THROW = 14;
+    this.PADDING   = 10;
 
     this._loop        = this._loop.bind(this);
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp   = this._onMouseUp.bind(this);
 
+    // Mouse events on window so fast drags don't lose the element
     window.addEventListener('mousemove', this._onMouseMove);
     window.addEventListener('mouseup',   this._onMouseUp);
 
@@ -26,15 +31,14 @@ class PhysicsEngine {
 
   /**
    * register(el, x, y)
-   * Creates a physics entity for the element and returns it.
-   * Returning the entity lets elements.js call setBounds() on it.
+   * x, y are relative to the sandbox top-left (not the page).
    */
   register(el, x, y) {
     const entity = {
       el,
       x, y,
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: (Math.random() - 0.5) * 0.6,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
       isDragging:  false,
       dragOffsetX: 0,
       dragOffsetY: 0,
@@ -42,8 +46,6 @@ class PhysicsEngine {
       lastMouseY:  0,
       prevMouseX:  0,
       prevMouseY:  0,
-      bounds:     null,   // set by setBounds() — null = use global fallback
-      sectionEl:  null,   // DOM reference kept for resize recalculation
     };
 
     this.entities.push(entity);
@@ -51,48 +53,34 @@ class PhysicsEngine {
 
     el.addEventListener('mousedown', (e) => {
       e.preventDefault();
+      e.stopPropagation();
+
+      const sandboxRect = this.sandbox.getBoundingClientRect();
+
       entity.isDragging  = true;
-      entity.dragOffsetX = (e.clientX + window.scrollX) - entity.x;
-      entity.dragOffsetY = (e.clientY + window.scrollY) - entity.y;
+      // dragOffset = distance from mouse to element's top-left,
+      // expressed in sandbox-relative coords
+      entity.dragOffsetX = (e.clientX - sandboxRect.left) - entity.x;
+      entity.dragOffsetY = (e.clientY - sandboxRect.top)  - entity.y;
       entity.lastMouseX  = e.clientX;
       entity.lastMouseY  = e.clientY;
       entity.prevMouseX  = e.clientX;
       entity.prevMouseY  = e.clientY;
       entity.vx = 0;
       entity.vy = 0;
+
       el.classList.add('is-dragging');
     });
 
-    return entity; // ← caller needs this to pass to setBounds()
-  }
-
-  /**
-   * setBounds(entity, sectionEl)
-   * Called by elements.js to assign a section cage to an entity.
-   * Stores the DOM reference so resize can recalculate later.
-   */
-  setBounds(entity, sectionEl) {
-    entity.sectionEl = sectionEl;
-    entity.bounds    = this._calcBounds(sectionEl);
-  }
-
-  /**
-   * _calcBounds(sectionEl)
-   * Converts a section's getBoundingClientRect() into page-absolute coords.
-   * Private — only physics.js calls this.
-   */
-  _calcBounds(sectionEl) {
-    const PADDING = 12;
-    const rect    = sectionEl.getBoundingClientRect();
-    return {
-      top:    rect.top    + window.scrollY + PADDING,
-      left:   rect.left   + window.scrollX + PADDING,
-      bottom: rect.bottom + window.scrollY - PADDING,
-      right:  rect.right  + window.scrollX - PADDING,
-    };
+    return entity;
   }
 
   _loop() {
+    // Sandbox dimensions — re-read each frame so resize works
+    const W = this.sandbox.offsetWidth;
+    const H = this.sandbox.offsetHeight;
+    const P = this.PADDING;
+
     for (const entity of this.entities) {
       if (entity.isDragging) continue;
 
@@ -100,36 +88,22 @@ class PhysicsEngine {
       entity.y += entity.vy;
       entity.vx *= this.DAMPING;
       entity.vy *= this.DAMPING;
+
       if (Math.abs(entity.vx) < 0.01) entity.vx = 0;
       if (Math.abs(entity.vy) < 0.01) entity.vy = 0;
 
-      const elW = entity.el.offsetWidth  || 160;
-      const elH = entity.el.offsetHeight || 44;
+      const elW = entity.el.offsetWidth  || 120;
+      const elH = entity.el.offsetHeight || 40;
 
-      // ── Per-entity bounds if set, global document fallback otherwise ──
-      let minX, maxX, minY, maxY;
+      const minX = P;
+      const maxX = Math.max(P, W - elW - P);
+      const minY = P;
+      const maxY = Math.max(P, H - elH - P);
 
-      if (entity.bounds) {
-        minX = entity.bounds.left;
-        maxX = entity.bounds.right  - elW;
-        minY = entity.bounds.top;
-        maxY = entity.bounds.bottom - elH;
-      } else {
-        minX = 8;
-        maxX = document.body.scrollWidth  - elW - 8;
-        minY = 8;
-        maxY = document.body.scrollHeight - elH - 8;
-      }
-
-      // Clamp maxX/maxY so they're never less than minX/minY
-      // (prevents NaN jitter if section is smaller than the element)
-      maxX = Math.max(minX, maxX);
-      maxY = Math.max(minY, maxY);
-
-      if (entity.x < minX) { entity.x = minX; entity.vx =  Math.abs(entity.vx) * 0.4; }
-      if (entity.x > maxX) { entity.x = maxX; entity.vx = -Math.abs(entity.vx) * 0.4; }
-      if (entity.y < minY) { entity.y = minY; entity.vy =  Math.abs(entity.vy) * 0.4; }
-      if (entity.y > maxY) { entity.y = maxY; entity.vy = -Math.abs(entity.vy) * 0.4; }
+      if (entity.x < minX) { entity.x = minX; entity.vx =  Math.abs(entity.vx) * 0.45; }
+      if (entity.x > maxX) { entity.x = maxX; entity.vx = -Math.abs(entity.vx) * 0.45; }
+      if (entity.y < minY) { entity.y = minY; entity.vy =  Math.abs(entity.vy) * 0.45; }
+      if (entity.y > maxY) { entity.y = maxY; entity.vy = -Math.abs(entity.vy) * 0.45; }
 
       this._applyPosition(entity);
     }
@@ -146,8 +120,10 @@ class PhysicsEngine {
       entity.lastMouseX = e.clientX;
       entity.lastMouseY = e.clientY;
 
-      entity.x = (e.clientX + window.scrollX) - entity.dragOffsetX;
-      entity.y = (e.clientY + window.scrollY) - entity.dragOffsetY;
+      // Convert mouse position to sandbox-relative coords
+      const sandboxRect  = this.sandbox.getBoundingClientRect();
+      entity.x = (e.clientX - sandboxRect.left) - entity.dragOffsetX;
+      entity.y = (e.clientY - sandboxRect.top)  - entity.dragOffsetY;
 
       this._applyPosition(entity);
     }
@@ -170,6 +146,13 @@ class PhysicsEngine {
     entity.el.style.left = `${entity.x}px`;
     entity.el.style.top  = `${entity.y}px`;
   }
-}
 
-const physics = new PhysicsEngine();
+  /**
+   * destroy()
+   * Removes event listeners — call if you ever remove a sandbox from the DOM.
+   */
+  destroy() {
+    window.removeEventListener('mousemove', this._onMouseMove);
+    window.removeEventListener('mouseup',   this._onMouseUp);
+  }
+}

@@ -1,145 +1,77 @@
-/* main.css */
-
-/* ── Body ────────────────────────────────────────────────────── */
+/* ── Base ──────────────────────────────────────────────────────── */
 
 body {
   background-color: var(--color-bg);
-  font-family: var(--font-body);
   color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
   overflow-x: hidden;
-  overflow-y: auto;  /* always scrollable */
 }
 
-/* ── Canvas overlay ──────────────────────────────────────────── 
-   Sits on top of the page content as a transparent layer.
-   Floaty elements are positioned absolute inside it.
-   pointer-events: none on canvas itself so scroll/clicks pass through,
-   but pointer-events: auto on .floaty so they're still grabbable.
-*/
-
-#canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;     /* stretches to full page height, not just viewport */
+/* Subtle ambient glow — fixed so it doesn't scroll */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 30%, #0ea5e90a 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 70%, #818cf808 0%, transparent 55%);
   pointer-events: none;
-  z-index: 10;
-  overflow: visible;
+  z-index: 0;
 }
 
-/* ── Floating Elements ───────────────────────────────────────── */
+/* ── Fixed Navbar ──────────────────────────────────────────────── */
 
-.floaty {
-  position: absolute;
-  pointer-events: auto;    /* re-enable on the elements themselves */
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  will-change: left, top;
-  z-index: 10;
-}
-
-.floaty:active,
-.floaty.is-dragging {
-  cursor: grabbing;
-}
-
-.floaty.is-dragging {
-  box-shadow: var(--shadow-glow);
-  opacity: 0.9;
-  z-index: 100;
-}
-
-/* ── Icon Chips ──────────────────────────────────────────────── */
-
-.icon-chip {
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-8);
+  background: rgba(8, 11, 17, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+#navbar .logo {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  color: var(--color-text);
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
+  color: var(--color-accent);
+  letter-spacing: 0.05em;
 }
 
-.icon-chip:hover {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 14px var(--color-accent-dim);
-}
-
-/* ── Nav Pills ───────────────────────────────────────────────── */
-
-.nav-pill {
-  display: block;
-  padding: var(--space-2) var(--space-6);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: 500;
-  color: var(--color-text);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  backdrop-filter: blur(8px);
-}
-
-.nav-pill:hover {
-  background: var(--color-accent);
-  color: var(--color-bg);
-  border-color: var(--color-accent);
-}
-
-/* ── Project Cards ───────────────────────────────────────────── */
-
-.project-card {
-  width: 220px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(8px);
-}
-
-.card-thumb {
-  width: 100%;
-  height: 110px;
-  background: #1a2535;
+#navbar nav {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
+  gap: var(--space-8);
 }
 
-.card-body     { padding: var(--space-3) var(--space-4); }
-.card-title    { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-1); }
-.card-tag      { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-accent); }
+#navbar nav a {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
 
-/* ── Page Wrapper — sits behind the canvas ───────────────────── */
+#navbar nav a:hover { color: var(--color-text); }
+
+/* ── Page Wrapper ─────────────────────────────────────────────── */
 
 #page {
   position: relative;
   z-index: 1;
+  padding-top: 64px; /* offset for fixed navbar */
 }
 
-/* ── Sections ────────────────────────────────────────────────── */
+/* ── Section Base ─────────────────────────────────────────────── */
 
 .section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 700px;
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 120px var(--space-6);
+  padding: var(--section-pad-y) var(--section-pad-x);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section-label {
@@ -153,7 +85,7 @@ body {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: clamp(1.6rem, 3.5vw, var(--text-4xl));
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: -0.02em;
@@ -161,30 +93,348 @@ body {
   margin-bottom: var(--space-6);
 }
 
-.section-body {
+/* ── HERO ─────────────────────────────────────────────────────── */
+
+#hero {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--section-pad-y) var(--section-pad-x);
+  border-bottom: 1px solid var(--color-border);
+}
+
+#hero .eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  margin-bottom: var(--space-4);
+}
+
+#hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: var(--space-6);
+  color: var(--color-text);
+}
+
+#hero h1 span { color: var(--color-accent); }
+
+#hero .bio {
   font-size: var(--text-lg);
-  line-height: 1.8;
+  color: var(--color-text-muted);
+  max-width: 520px;
+  line-height: 1.75;
+  margin-bottom: var(--space-8);
+}
+
+#hero .cta-row {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  transition: opacity var(--transition-fast);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-ghost {
+  display: inline-block;
+  padding: var(--space-3) var(--space-6);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-full);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+.btn-ghost:hover { border-color: var(--color-text-muted); color: var(--color-text); }
+
+/* ── ABOUT ────────────────────────────────────────────────────── */
+
+#about .about-body {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  max-width: 620px;
+  line-height: 1.85;
+}
+
+#about .about-body strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* ── SKILLS — physics sandbox ─────────────────────────────────── */
+
+#skills .physics-sandbox {
+  position: relative;          /* ← the coordinate origin for all floaty children */
+  width: 100%;
+  height: 320px;               /* fixed height so the section has volume */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;            /* hard wall — chips can't escape visually */
+  margin-top: var(--space-4);
+}
+
+/* hint text — fades out after first interaction */
+#skills .sandbox-hint {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ── EXPERIENCE — timeline ────────────────────────────────────── */
+
+#experience .timeline {
+  position: relative;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* vertical line */
+#experience .timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.timeline-item { position: relative; }
+
+/* dot on the line */
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent-dim);
+}
+
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+
+.timeline-role {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.timeline-org {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.timeline-desc {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.75;
+  max-width: 560px;
+}
+
+/* ── PROJECTS — physics sandbox ───────────────────────────────── */
+
+#projects .physics-sandbox {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+  margin-top: var(--space-4);
+}
+
+/* ── CERTIFICATIONS — physics sandbox ─────────────────────────── */
+
+#certifications .physics-sandbox {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+  margin-top: var(--space-4);
+}
+
+/* ── CONTACT ──────────────────────────────────────────────────── */
+
+#contact { border-bottom: none; }
+
+#contact .contact-body {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  max-width: 520px;
+  line-height: 1.75;
+  margin-bottom: var(--space-8);
+}
+
+#contact .contact-links {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* ── Floaty Elements (shared) ──────────────────────────────────── */
+/*
+  position: absolute — relative to their .physics-sandbox parent.
+  The sandbox has overflow: hidden so they're visually clipped at the edge.
+*/
+
+.floaty {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  will-change: left, top;
+  z-index: 2;
+}
+
+.floaty:active,
+.floaty.is-dragging { cursor: grabbing; }
+
+.floaty.is-dragging {
+  box-shadow: var(--shadow-glow);
+  z-index: 10;
+}
+
+/* ── Skill Chips ──────────────────────────────────────────────── */
+
+.skill-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.skill-chip:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px var(--color-accent-dim);
+}
+
+/* ── Project Cards ────────────────────────────────────────────── */
+
+.project-card {
+  width: 240px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast);
+}
+
+.project-card:hover { border-color: var(--color-accent); }
+
+.card-thumb {
+  width: 100%;
+  height: 110px;
+  background: #0d1825;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+}
+
+.card-body    { padding: var(--space-3) var(--space-4); }
+.card-title   { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-1); }
+.card-tag     { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-accent); }
+
+/* ── Cert Cards ───────────────────────────────────────────────── */
+
+.cert-card {
+  width: 210px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast);
+}
+
+.cert-card:hover { border-color: var(--color-accent-2); }
+
+.cert-issuer {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-accent-2);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-2);
+}
+
+.cert-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.4;
+  margin-bottom: var(--space-2);
+}
+
+.cert-year {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
-.section + .section {
+/* ── Footer ───────────────────────────────────────────────────── */
+
+footer {
+  text-align: center;
+  padding: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
   border-top: 1px solid var(--color-border);
 }
 
-/* ── Background radial glow ──────────────────────────────────── */
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 15% 40%, #0ea5e90a 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 15%, #818cf80a 0%, transparent 55%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ── Reduced Motion ──────────────────────────────────────────── */
+/* ── Reduced Motion ───────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .floaty { transition: none !important; }

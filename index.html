@@ -15,63 +15,161 @@
 </head>
 <body>
 
-  <!--
-    #canvas — transparent overlay, full page height.
-    Floaty elements live here, absolutely positioned.
-    pointer-events: none on canvas, auto on .floaty children.
-  -->
-  <div id="canvas"></div>
+  <!-- ── Fixed Navbar ───────────────────────────────────────────── -->
+  <header id="navbar">
+    <span class="logo">shiva.dev</span>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#experience">Experience</a>
+      <a href="#projects">Projects</a>
+      <a href="#certifications">Certs</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
 
-  <!--
-    #page — the actual readable content beneath the canvas.
-    Normal document flow, scrollable.
-  -->
   <div id="page">
 
-    <section id="hero" class="section">
-      <p class="section-label">Shiva Kumar</p>
-      <h1 class="section-title">Software Engineer<br>&amp; AI/ML Explorer.</h1>
-      <p class="section-body">
+    <!-- ── HERO ─────────────────────────────────────────────────── -->
+    <section id="hero">
+      <p class="eyebrow">// hello world</p>
+      <h1>Shiva Kumar.<br><span>Software Engineer</span><br>&amp; AI/ML Explorer.</h1>
+      <p class="bio">
         Second-year CSE student at Presidency University, Bangalore.
-        I build backends, explore AI systems, and ship things that work.
+        I build backends that scale, AI pipelines that reason,
+        and interfaces that feel alive.
       </p>
+      <div class="cta-row">
+        <a href="#projects" class="btn-primary">See my work</a>
+        <a href="#contact"  class="btn-ghost">Get in touch</a>
+      </div>
     </section>
 
+    <!-- ── ABOUT ─────────────────────────────────────────────────── -->
     <section id="about" class="section">
-      <p class="section-label">01 — About</p>
-      <h2 class="section-title">Building things<br>that think.</h2>
-      <p class="section-body">
-        My stack lives at the intersection of Java backends, Python pipelines,
-        and whatever AI tooling gets the job done. I learn best by shipping —
-        from Spring Boot REST APIs serving real Bangalore locality data,
-        to LangFlow pipelines reading student feedback with GPT-4.
+      <p class="section-label">About</p>
+      <h2 class="section-title">Building things that think.</h2>
+      <p class="about-body">
+        I'm a <strong>full-stack developer</strong> and <strong>AI/ML enthusiast</strong>
+        who learns by building end-to-end systems — schema to deployment.
+        My stack lives at the intersection of <strong>Java backends</strong>,
+        <strong>Python pipelines</strong>, and whatever AI tooling gets the job done.
+        I've completed workshops at <strong>IISc Bangalore</strong>, participated in
+        prompt engineering hackathons, and built projects that span DBMS, systems design,
+        and scalable APIs — always understanding every line, never copy-pasting blindly.
       </p>
     </section>
 
+    <!-- ── SKILLS ────────────────────────────────────────────────── -->
+    <section id="skills" class="section">
+      <p class="section-label">Skills</p>
+      <h2 class="section-title">What I work with.</h2>
+
+      <!--
+        .physics-sandbox — position: relative container.
+        Skill chips are injected here as position: absolute children.
+        overflow: hidden clips them at the edges.
+      -->
+      <div class="physics-sandbox">
+        <span class="sandbox-hint">drag me around ↗</span>
+      </div>
+    </section>
+
+    <!-- ── EXPERIENCE ─────────────────────────────────────────────── -->
+    <section id="experience" class="section">
+      <p class="section-label">Experience</p>
+      <h2 class="section-title">Where I've shown up.</h2>
+
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-date">Jun 2024 — Aug 2024</div>
+          <div class="timeline-role">Solutions Architecture Simulation</div>
+          <div class="timeline-org">AWS · Forage</div>
+          <p class="timeline-desc">
+            Completed a job simulation designing scalable cloud architectures
+            for real-world business scenarios. Practised writing technical
+            proposals and cost-optimised infrastructure diagrams on AWS.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Mar 2024</div>
+          <div class="timeline-role">Prompt Engineering Hackathon</div>
+          <div class="timeline-org">Presidency University</div>
+          <p class="timeline-desc">
+            Built a multi-step AI pipeline to analyze student feedback using
+            GPT-4 and LangFlow. Implemented classifier routing to specialist
+            prompt nodes — top placement in the event.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">Jan 2024 — May 2024</div>
+          <div class="timeline-role">Full-Stack Project — Bengaluru Property Insights</div>
+          <div class="timeline-org">Presidency University · CSE2260 / CSI2503</div>
+          <p class="timeline-desc">
+            Designed and built a dual-course mini project spanning DBMS and Java.
+            Spring Boot REST API backend, MySQL database with scraped MagicBricks data,
+            and a Next.js + Leaflet.js frontend for land price visualization and ROI analysis.
+          </p>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-date">2023 — Present</div>
+          <div class="timeline-role">B.Tech Computer Science &amp; Engineering</div>
+          <div class="timeline-org">Presidency University, Bangalore</div>
+          <p class="timeline-desc">
+            Coursework spanning Algorithms, AI, Operating Systems, DBMS,
+            and scalable Java application development. Expected graduation July 2028.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── PROJECTS ───────────────────────────────────────────────── -->
     <section id="projects" class="section">
-      <p class="section-label">02 — Projects</p>
-      <h2 class="section-title">Things I've<br>shipped.</h2>
-      <p class="section-body">
-        Each project in this portfolio is a system I built end-to-end —
-        schema design, backend logic, and wiring the frontend together.
-        No generated boilerplate. I understand what every line does.
-      </p>
+      <p class="section-label">Projects</p>
+      <h2 class="section-title">Things I've shipped.</h2>
+
+      <div class="physics-sandbox">
+        <span class="sandbox-hint">drag the cards ↗</span>
+      </div>
     </section>
 
+    <!-- ── CERTIFICATIONS ─────────────────────────────────────────── -->
+    <section id="certifications" class="section">
+      <p class="section-label">Certifications</p>
+      <h2 class="section-title">What I've earned.</h2>
+
+      <div class="physics-sandbox">
+        <span class="sandbox-hint">drag to explore ↗</span>
+      </div>
+    </section>
+
+    <!-- ── CONTACT ────────────────────────────────────────────────── -->
     <section id="contact" class="section">
-      <p class="section-label">03 — Contact</p>
-      <h2 class="section-title">Let's build<br>something.</h2>
-      <p class="section-body">
-        Open to internships, collaborations, and interesting problems.
-        Find me on
-        <a href="https://github.com" style="color:var(--color-accent)">GitHub</a>
-        or
-        <a href="https://linkedin.com" style="color:var(--color-accent)">LinkedIn</a>.
+      <p class="section-label">Contact</p>
+      <h2 class="section-title">Let's build something.</h2>
+      <p class="contact-body">
+        Open to internship opportunities, collaborations, and interesting problems.
+        I'm actively looking for software engineering roles for my May–Aug 2025 summer break.
       </p>
+      <div class="contact-links">
+        <a href="https://github.com"   class="btn-primary">GitHub</a>
+        <a href="https://linkedin.com" class="btn-ghost">LinkedIn</a>
+        <a href="mailto:shiva@email.com" class="btn-ghost">Email</a>
+      </div>
     </section>
 
-  </div>
+  </div><!-- /#page -->
 
+  <footer>
+    Built from scratch · Vanilla JS · No frameworks · &copy; 2025 Shiva Kumar
+  </footer>
+
+  <!-- Script order: physics engine → data/factories → entry point -->
   <script src="js/physics.js"></script>
   <script src="js/elements.js"></script>
   <script src="js/main.js"></script>

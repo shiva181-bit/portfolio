@@ -1,57 +1,67 @@
 /**
- * elements.js — Floating elements, layout positions, section assignments
+ * elements.js — Portfolio data, DOM factories, and sandbox spawners
  *
- * This file owns:
- *   - What elements exist (data arrays)
- *   - How to build their DOM nodes (factory functions)
- *   - Where they start (position calculation)
- *   - Which section cage they belong to (setBounds calls)
- *   - Recalculating bounds on window resize
- *
- * physics.js owns none of this — it only reads entity.bounds.
+ * Each physics section gets its own spawn function that:
+ *   1. Creates DOM elements
+ *   2. Appends them to that section's .physics-sandbox
+ *   3. Registers them with that sandbox's PhysicsEngine instance
+ *   4. Positions them randomly within the sandbox bounds
  */
 
-// ── Data ────────────────────────────────────────────────────────
+// ── Data ─────────────────────────────────────────────────────────
 
-const TECH_STACK = [
-  { label: 'React',       emoji: '⚛️',  color: '#61dafb' },
-  { label: 'Java',        emoji: '☕',  color: '#f89820' },
-  { label: 'Spring Boot', emoji: '🍃',  color: '#6db33f' },
-  { label: 'MySQL',       emoji: '🐬',  color: '#00758f' },
-  { label: 'Python',      emoji: '🐍',  color: '#3572a5' },
-  { label: 'Next.js',     emoji: '▲',   color: '#e2e8f0' },
-  { label: 'Git',         emoji: '🔀',  color: '#f05032' },
-  { label: 'Linux',       emoji: '🐧',  color: '#fcc624' },
-];
-
-const NAV_LINKS = [
-  { label: 'About',    href: '#about'    },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Contact',  href: '#contact'  },
+const SKILLS = [
+  { label: 'React',        emoji: '⚛️',  color: '#61dafb' },
+  { label: 'Java',         emoji: '☕',  color: '#f89820' },
+  { label: 'Spring Boot',  emoji: '🍃',  color: '#6db33f' },
+  { label: 'MySQL',        emoji: '🐬',  color: '#00758f' },
+  { label: 'Python',       emoji: '🐍',  color: '#3572a5' },
+  { label: 'Next.js',      emoji: '▲',   color: '#e2e8f0' },
+  { label: 'Git',          emoji: '🔀',  color: '#f05032' },
+  { label: 'Linux',        emoji: '🐧',  color: '#fcc624' },
+  { label: 'TypeScript',   emoji: '𝐓𝐒',  color: '#3178c6' },
+  { label: 'LangChain',    emoji: '🔗',  color: '#10b981' },
+  { label: 'REST APIs',    emoji: '🔌',  color: '#a78bfa' },
+  { label: 'Docker',       emoji: '🐳',  color: '#2496ed' },
 ];
 
 const PROJECTS = [
-  { title: 'Bengaluru Property Insights', tag: 'Spring Boot · MySQL · Next.js', thumb: '🏙️' },
-  { title: 'AI Feedback Analyzer',        tag: 'LangFlow · GPT-4 · Python',     thumb: '🤖' },
-  { title: 'Portfolio OS',                tag: 'Vanilla JS · CSS · HTML',        thumb: '🌌' },
+  {
+    title: 'Bengaluru Property Insights',
+    tag:   'Spring Boot · MySQL · Next.js',
+    thumb: '🏙️',
+    desc:  'Land price visualization & ROI analysis for Bangalore localities.',
+  },
+  {
+    title: 'AI Feedback Analyzer',
+    tag:   'LangFlow · GPT-4 · Python',
+    thumb: '🤖',
+    desc:  'Multi-step pipeline classifying student feedback with specialist prompt nodes.',
+  },
+  {
+    title: 'Portfolio OS',
+    tag:   'Vanilla JS · CSS · HTML',
+    thumb: '🌌',
+    desc:  'This site — physics-based UI built from scratch, no frameworks.',
+  },
 ];
 
-// ── DOM Factories ────────────────────────────────────────────────
+const CERTIFICATIONS = [
+  { name: 'Generative AI Workshop',        issuer: 'IISc Bangalore',  year: '2024' },
+  { name: 'AI/ML Foundations Workshop',    issuer: 'IISc Bangalore',  year: '2024' },
+  { name: 'Solutions Architecture',        issuer: 'AWS · Forage',    year: '2024' },
+  { name: 'Prompt Engineering Hackathon',  issuer: 'Presidency Univ', year: '2024' },
+  { name: 'Cybersecurity Tech Event',      issuer: 'Presidency Univ', year: '2024' },
+];
 
-function createIconChip({ label, emoji, color }) {
+// ── DOM Factories ─────────────────────────────────────────────────
+
+function createSkillChip({ label, emoji, color }) {
   const el = document.createElement('div');
-  el.className = 'floaty icon-chip';
+  el.className = 'floaty skill-chip';
   el.innerHTML = `<span>${emoji}</span><span>${label}</span>`;
   el.style.borderLeftColor = color;
   el.style.borderLeftWidth = '3px';
-  return el;
-}
-
-function createNavPill({ label, href }) {
-  const el = document.createElement('a');
-  el.className = 'floaty nav-pill';
-  el.textContent = label;
-  el.href = href;
   return el;
 }
 
@@ -67,100 +77,89 @@ function createProjectCard({ title, tag, thumb }) {
   return el;
 }
 
-// ── Position Helpers ─────────────────────────────────────────────
+function createCertCard({ name, issuer, year }) {
+  const el = document.createElement('div');
+  el.className = 'floaty cert-card';
+  el.innerHTML = `
+    <div class="cert-issuer">${issuer}</div>
+    <div class="cert-name">${name}</div>
+    <div class="cert-year">${year}</div>`;
+  return el;
+}
 
+// ── Position Helper ───────────────────────────────────────────────
 /**
- * randomPosInSection(sectionEl, elW, elH)
- * Returns a random page-absolute {x, y} that fits inside the section.
- * Used to scatter elements naturally within their cage on load.
+ * randomPos(sandbox, elW, elH)
+ * Returns a random {x, y} that fits inside the sandbox with padding.
+ * Coordinates are sandbox-relative (0,0 = top-left of sandbox).
  */
-function randomPosInSection(sectionEl, elW = 160, elH = 44) {
-  const PADDING = 24;
-  const rect    = sectionEl.getBoundingClientRect();
-
-  const minX = rect.left   + window.scrollX + PADDING;
-  const maxX = rect.right  + window.scrollX - elW - PADDING;
-  const minY = rect.top    + window.scrollY + PADDING;
-  const maxY = rect.bottom + window.scrollY - elH - PADDING;
-
+function randomPos(sandbox, elW = 140, elH = 44) {
+  const PAD = 16;
+  const maxX = Math.max(PAD, sandbox.offsetWidth  - elW - PAD);
+  const maxY = Math.max(PAD, sandbox.offsetHeight - elH - PAD);
   return {
-    x: minX + Math.random() * Math.max(0, maxX - minX),
-    y: minY + Math.random() * Math.max(0, maxY - minY),
+    x: PAD + Math.random() * (maxX - PAD),
+    y: PAD + Math.random() * (maxY - PAD),
   };
 }
 
-// ── Spawn All ────────────────────────────────────────────────────
+// ── Stagger Fade-in ───────────────────────────────────────────────
 
-function spawnAll(canvas, physics) {
-  // Grab section nodes — elements.js owns DOM knowledge, physics.js never does
-  const heroSection     = document.getElementById('hero');
-  const aboutSection    = document.getElementById('about');
-  const projectsSection = document.getElementById('projects');
-  const contactSection  = document.getElementById('contact');
+function fadeIn(elements) {
+  elements.forEach((el, i) => {
+    el.style.opacity   = '0';
+    el.style.transform = 'scale(0.85)';
+    el.style.transition = 'opacity 350ms ease, transform 350ms ease';
+    setTimeout(() => {
+      el.style.opacity   = '1';
+      el.style.transform = 'scale(1)';
+      setTimeout(() => {
+        el.style.transition = 'border-color 150ms ease, box-shadow 150ms ease';
+      }, 350);
+    }, 80 + i * 55);
+  });
+}
 
-  const W  = window.innerWidth;
-  const VH = window.innerHeight;
+// ── Sandbox Spawners ──────────────────────────────────────────────
 
-  // ── Nav pills → hero section ──────────────────────────────────
-  // Positioned manually across the top of the hero section
-  const navY = VH * 0.08;
-  const navPositions = [
-    { x: W * 0.25 - 55, y: navY },
-    { x: W * 0.50 - 55, y: navY },
-    { x: W * 0.75 - 55, y: navY },
-  ];
+function spawnSkills(sandbox) {
+  const engine = new PhysicsEngine(sandbox);
 
-  NAV_LINKS.forEach((data, i) => {
-    const el     = createNavPill(data);
-    canvas.appendChild(el);
-    const entity = physics.register(el, navPositions[i].x, navPositions[i].y);
-    physics.setBounds(entity, heroSection);
+  SKILLS.forEach(data => {
+    const el  = createSkillChip(data);
+    sandbox.appendChild(el);
+    const pos = randomPos(sandbox, 160, 40);
+    engine.register(el, pos.x, pos.y);
   });
 
-  // ── Tech chips → hero section ─────────────────────────────────
-  // Two rows of 4 flanking the hero headline, then random scatter
-  const chipW      = 160;
-  const chipGap    = 14;
-  const rowWidth   = chipW * 4 + chipGap * 3;
-  const chipStartX = (W - rowWidth) / 2;
-  const heroMidY   = VH / 2;
+  fadeIn(Array.from(sandbox.querySelectorAll('.floaty')));
+  return engine;
+}
 
-  TECH_STACK.forEach((data, i) => {
-    const el  = createIconChip(data);
-    canvas.appendChild(el);
+function spawnProjects(sandbox) {
+  const engine = new PhysicsEngine(sandbox);
 
-    const col = i % 4;
-    const row = Math.floor(i / 4);
-    const x   = chipStartX + col * (chipW + chipGap);
-    const y   = row === 0 ? heroMidY - 130 : heroMidY + 90;
-
-    const entity = physics.register(el, x, y);
-    physics.setBounds(entity, heroSection);
+  PROJECTS.forEach(data => {
+    const el  = createProjectCard(data);
+    sandbox.appendChild(el);
+    const pos = randomPos(sandbox, 240, 180);
+    engine.register(el, pos.x, pos.y);
   });
 
-  // ── Project cards → projects section ─────────────────────────
-  // Scattered randomly within the projects section bounds
-  PROJECTS.forEach((data) => {
-    const el     = createProjectCard(data);
-    canvas.appendChild(el);
-    const pos    = randomPosInSection(projectsSection, 220, 180);
-    const entity = physics.register(el, pos.x, pos.y);
-    physics.setBounds(entity, projectsSection);
+  fadeIn(Array.from(sandbox.querySelectorAll('.floaty')));
+  return engine;
+}
+
+function spawnCertifications(sandbox) {
+  const engine = new PhysicsEngine(sandbox);
+
+  CERTIFICATIONS.forEach(data => {
+    const el  = createCertCard(data);
+    sandbox.appendChild(el);
+    const pos = randomPos(sandbox, 210, 110);
+    engine.register(el, pos.x, pos.y);
   });
 
-  // ── Resize handler ────────────────────────────────────────────
-  // When the viewport changes, section rects change too.
-  // Recalculate all bounds so cages stay accurate.
-  // Debounced 120ms — don't hammer this on every pixel of resize.
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      physics.entities.forEach(entity => {
-        if (entity.sectionEl) {
-          entity.bounds = physics._calcBounds(entity.sectionEl);
-        }
-      });
-    }, 120);
-  });
+  fadeIn(Array.from(sandbox.querySelectorAll('.floaty')));
+  return engine;
 }
